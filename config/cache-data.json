@@ -1,0 +1,169 @@
+{
+  "duplicate_rh2_results": {
+    "value": [
+      {
+        "groupKey": "saber-eazze-0001-01-01",
+        "groupData": [
+          {
+            "id_rh": 1178,
+            "nom": "saber",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "51",
+            "experience": "54",
+            "wilaya_rh": 1,
+            "id_candidature": 773,
+            "flag_step": 1,
+            "num_assurance": "1711",
+            "projectId": 10438,
+            "project_name": "ETUDE ET SUIVIE DES TRAVAUX DE REALISATION DE 1600 LOGEMENT L-V EN TCE AVEC LOCAUX A USAGE COMMERCIAL Y COMPRIS LES TRAVAUX DE VIABILISATION SIS A LA VNB (AU LIEU A PROXIMITE DE LA CITE 954 LOGTS) COMMUNE DE  BOUINAN WILAYA DE BLIDA (ZONE 01)",
+            "date_1parution": "2025-01-26",
+            "n_logts": 1600,
+            "code_wilaya": 9,
+            "flag_annule": 1,
+            "nom_group": "GROUPEMENT TASSAMIM",
+            "type_group": "group",
+            "phase": "retenu"
+          },
+          {
+            "id_rh": 1181,
+            "nom": "saber",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "51",
+            "experience": "54",
+            "wilaya_rh": 1,
+            "id_candidature": 792,
+            "flag_step": 1,
+            "num_assurance": "79575",
+            "projectId": 10431,
+            "project_name": "ETUDE ET SUIVIE DES TRAVAUX DE REALISATION DE 1000 LOGEMENT L-V EN TCE AVEC LOCAUX A USAGE COMMERCIAL Y COMPRIS LES TRAVAUX DE VIABILISATION SIS AU POS 20 A LA  COMMUNE DE DJELFA WILAYA DE DJELFA  (ZONE 02)",
+            "date_1parution": "2025-01-26",
+            "n_logts": 1000,
+            "code_wilaya": 17,
+            "flag_annule": 0,
+            "nom_group": "BET ARCHIMED (CHAKRAR MENOUAR)",
+            "type_group": "alone",
+            "phase": "preselection"
+          },
+          {
+            "id_rh": 1196,
+            "nom": "saber",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "gzeg",
+            "experience": "5",
+            "wilaya_rh": 1,
+            "id_candidature": 925,
+            "flag_step": 1,
+            "num_assurance": "777888886661",
+            "projectId": 10450,
+            "project_name": "Etude et suivi des travaux de rÃ©alisation des 555/1200 logements individuels en RDC + terrasse accessible en Â« Location â€“Vente Â» en TCE y compris les travaux de viabilisation, sis Ã  la commune dâ€™ADRAR-wilaya dâ€™ADRAR",
+            "date_1parution": null,
+            "n_logts": 555,
+            "code_wilaya": 1,
+            "flag_annule": 1,
+            "nom_group": "SPA BETP  BECHAR",
+            "type_group": "alone",
+            "phase": "annulé"
+          },
+          {
+            "id_rh": 1200,
+            "nom": "saber",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "gzeg",
+            "experience": "5",
+            "wilaya_rh": 1,
+            "id_candidature": 1066,
+            "flag_step": 1,
+            "num_assurance": "777888886661",
+            "projectId": 10548,
+            "project_name": "chlef878",
+            "date_1parution": null,
+            "n_logts": 4,
+            "code_wilaya": 2,
+            "flag_annule": 1,
+            "nom_group": "zaera",
+            "type_group": "group",
+            "phase": "attribué"
+          }
+        ]
+      },
+      {
+        "groupKey": "at-at-0001-01-01",
+        "groupData": [
+          {
+            "id_rh": 1184,
+            "nom": "at",
+            "prenom": "at",
+            "daten": "0001-01-01",
+            "fonction": "51",
+            "experience": "54",
+            "wilaya_rh": 1,
+            "id_candidature": 892,
+            "flag_step": 1,
+            "num_assurance": "5115",
+            "projectId": 10442,
+            "project_name": "ETUDE ET SUIVIE DES TRAVAUX DE REALISATION DE 1080 LOGEMENT L-V EN TCE AVEC LOCAUX A USAGE COMMERCIAL Y COMPRIS LES TRAVAUX DE VIABILISATION SIS A LA  COMMUNE DE KHEMIS MELIANA WILAYA DE AIN DEFLA (ZONE 02)",
+            "date_1parution": "2025-01-26",
+            "n_logts": 1080,
+            "code_wilaya": 44,
+            "flag_annule": 0,
+            "nom_group": "GROUPEMENT PLANET DESIGN",
+            "type_group": "group",
+            "phase": "preselection"
+          }
+        ]
+      },
+      {
+        "groupKey": "rafik-eazze-0001-01-01",
+        "groupData": [
+          {
+            "id_rh": 1201,
+            "nom": "rafik",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "gzeg",
+            "experience": "5",
+            "wilaya_rh": 1,
+            "id_candidature": 1066,
+            "flag_step": 1,
+            "num_assurance": "777888886661",
+            "projectId": 10548,
+            "project_name": "chlef878",
+            "date_1parution": null,
+            "n_logts": 4,
+            "code_wilaya": 2,
+            "flag_annule": 1,
+            "nom_group": "zaera",
+            "type_group": "group",
+            "phase": "attribué"
+          },
+          {
+            "id_rh": 1202,
+            "nom": "rafik",
+            "prenom": "eazze",
+            "daten": "0001-01-01",
+            "fonction": "gzeg",
+            "experience": "5",
+            "wilaya_rh": 1,
+            "id_candidature": 1060,
+            "flag_step": 1,
+            "num_assurance": "2222",
+            "projectId": 10470,
+            "project_name": "Etude et suivi de la rÃ©alisation des 1000/2600 logements Â« Location â€“Vente Â» en TCE avec locaux Ã  usage commercial, professionnel et conciergeries y compris les travaux de viabilisation au pÃ´le Urbain Maamria, commune dâ€™Oued Sly, DaÃ¯ra de Boukadir, wilaya de Chlef",
+            "date_1parution": null,
+            "n_logts": 1000,
+            "code_wilaya": 2,
+            "flag_annule": 0,
+            "nom_group": "Abbassi Brahim",
+            "type_group": "alone",
+            "phase": "annulé"
+          }
+        ]
+      }
+    ],
+    "expiresAt": 1749230045352
+  }
+}
