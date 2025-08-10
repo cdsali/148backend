@@ -385,6 +385,35 @@ router.get('/validations', verifyToken, async (req, res) => {
 
 
 
+router.get('/validationspv', verifyToken, async (req, res) => {
+  try {
+    if (req.user?.userRole !== 'membre') {
+      return res.status(403).json({ success: false, message: 'Accès refusé' });
+    }
+
+    const dr = req.user?.userDr;
+    
+    if (!dr || isNaN(dr)) {
+      return res.status(400).json({ success: false, message: 'Champ DR (entier) requis' });
+    }
+
+    // Use the new function to get data
+    const data = await new Promise((resolve, reject) => {
+      validationmodel.getValidationsPv(dr, (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('getValidationsPv error:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+
+
 router.post('/validations/bulk', verifyToken, async (req, res) => {
   if (req.user?.userRole !== 'membre') {
     return res.status(403).json({ success: false, message: 'Accès refusé' });

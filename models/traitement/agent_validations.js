@@ -57,6 +57,41 @@ LIMIT ? OFFSET ?
 }
 
 
+function getValidationsPv( dr, callback) {
+  const query = `
+SELECT 
+  s.nom,
+  s.prenom,
+  s.date_nais,
+  s.code AS id_souscripteur,
+
+  u.name AS agent_name,
+  u.affectation,
+
+  av.agent_id,
+  av.validated_at,
+  av.motif,
+  av.decision
+
+FROM agent_validations av
+JOIN souscripteurs s ON av.souscripteur_id = s.code
+JOIN users u ON av.agent_id = u.id
+
+WHERE 
+   u.dr = ?
+  AND av.membre_id IS NULL
+
+ORDER BY av.validated_at DESC
+
+
+  `;
+
+  mq.query(query, [ dr], (err, results) => {
+    if (err) return callback(err, null);
+    return callback(null, results);
+  });
+}
+
 
 function updateValidationDecision(validations, callback) {
   if (!Array.isArray(validations) || validations.length === 0) {
@@ -117,5 +152,7 @@ module.exports = {
  updateValidationDecision,
  insertValidationDecision,
  getValidationsPaginated,
- insertToComplete
+ insertToComplete,
+ getValidationsPv
+ 
   };

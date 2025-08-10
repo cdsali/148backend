@@ -52,7 +52,7 @@ async function getSouscripteurStats() {
   const [rows] = await db.query(`
     SELECT
       (SELECT COUNT(*) FROM souscripteurs) AS total,
-      (SELECT COUNT(*) FROM souscripteurs WHERE assign = 1) AS assigned,
+      (SELECT COUNT(*) FROM agent_assignments) AS assigned,
       (SELECT COUNT(*) FROM agent_validations WHERE decision = 'valide') AS favorable,
       (SELECT COUNT(*) FROM agent_validations WHERE decision = 'rejete') AS defavorable,
         (SELECT COUNT(*) FROM agent_validations WHERE decision = 'complete') AS complete
