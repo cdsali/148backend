@@ -18,8 +18,9 @@ const { PDFDocument } = require('pdf-lib');
 const fsPromises = require('fs').promises;
 
 
-
 const { Readable } = require('stream');
+
+
 const { LRUCache } = require('lru-cache');
 const cache = new LRUCache({
   max: 200,            // up to 200 merged PDFs
@@ -43,8 +44,8 @@ const userRole=req.user.userRole;
       dossiersreviews,
       address,
       conjoint,
-      affiliations,
-      controle,
+    //  affiliations,
+     // controle,
       motifs
     ] = await Promise.all([
       sousModel.GetSousById(sousId),
@@ -57,8 +58,8 @@ const userRole=req.user.userRole;
      
      sousModel.GetAddressesBySouscripteurId(sousId),
       conjointmodel.GetConById(sousId),
-      affiliationsmodel.GetAffiliationById(sousId),
-      controlemodel.GetControleById(sousId),
+      //affiliationsmodel.GetAffiliationById(sousId),
+      //controlemodel.GetControleById(sousId),
       controlemodel.GetMotifsBysous(sousId)
     ]);
 
@@ -68,8 +69,8 @@ const userRole=req.user.userRole;
       dossiersreviews,
       address,
       conjoint,
-      affiliations,
-      controle,
+     // affiliations,
+    //  controle,
       motifs
     });
 
@@ -157,7 +158,7 @@ async function mergePdfsToBuffer(files) {
   return Buffer.from(mergedBytes);
 }
 
-// Route: /test-doc/* -> prefix matching + merge matching files in same folder
+
 router.get('/test-doc/*', async (req, res) => {
   try {
     const decodedRelative = decodeURIComponent(req.params[0] || '');
@@ -356,6 +357,7 @@ router.get('/stats/traite-par-jour', async (req, res) => {
 router.get('/validations', verifyToken, async (req, res) => {
 
   try {
+    console.log(req.query);
  if (req.user?.userRole !== 'membre') {
       return res.status(403).json({ success: false, message: 'Accès refusé' });
     }
@@ -364,13 +366,16 @@ router.get('/validations', verifyToken, async (req, res) => {
     const dr = req.user?.userDr;
     const limit = parseInt(req.query.limit || '10', 10);
     const offset = parseInt(req.query.offset || '0', 10);
+    let observation_cadre=req.query.observation_cadre;
+    if(observation_cadre=='true') observation_cadre=true;
+    else observation_cadre=false;
   console.log(req.user?.userRole,dr );
     if (!decision || isNaN(dr)) {
       return res.status(400).json({ success: false, message: 'decision et dr (entier) requis' });
     }
 
     const data = await new Promise((resolve, reject) => {
-      validationmodel.getValidationsPaginated(decision, dr, limit, offset, (err, results) => {
+      validationmodel.getValidationsPaginated(decision, dr,observation_cadre, limit, offset, (err, results) => {
         if (err) return reject(err);
         resolve(results);
       });
@@ -382,6 +387,10 @@ router.get('/validations', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
+
+
+
+
 
 
 
@@ -467,6 +476,38 @@ validationmodel.insertToComplete(souscripteurId, dossier, (err, result) => {
     res.status(201).json({ message: 'Insertion réussie', data: result });
   });
 });
+
+router.get('/validations/sous', verifyToken, async (req, res) => {
+  try {
+    // Récupération du souscripteur_id depuis les paramètres de la requête (query string)
+    const { souscripteur_id } = req.query;
+
+    // Vérification du rôle utilisateur
+    if (req.user?.userRole !== 'membre') {
+      return res.status(403).json({ success: false, message: 'Accès refusé' });
+    }
+
+    // Vérification que le souscripteur_id est bien un entier
+    if (!souscripteur_id || isNaN(souscripteur_id)) {
+      return res.status(400).json({ success: false, message: 'souscripteur_id requis et doit être un entier' });
+    }
+
+    // Récupération des données depuis le modèle
+    const data = await new Promise((resolve, reject) => {
+      validationmodel.getValidationsBySous(souscripteur_id, (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+
+    // Retourner la réponse
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des validations par souscripteur:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 
 
 

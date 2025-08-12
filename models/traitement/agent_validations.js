@@ -21,34 +21,36 @@ function insertValidationDecision(souscripteurId, agentId, decision, motif,obser
 
 
 
-function getValidationsPaginated(decisionType, dr, limit, offset, callback) {
-  const query = `
+function getValidationsPaginated(decisionType, dr,observation_cadre, limit, offset, callback) {
+ 
+  let query = `
 SELECT 
   s.nom,
   s.prenom,
   s.date_nais,
   s.code AS id_souscripteur,
-
   u.name AS agent_name,
   u.affectation,
-
   av.agent_id,
   av.validated_at,
   av.motif,
   av.decision
-
 FROM agent_validations av
 JOIN souscripteurs s ON av.souscripteur_id = s.code
 JOIN users u ON av.agent_id = u.id
-
 WHERE av.decision = ?
   AND u.dr = ?
   AND av.membre_id IS NULL
+`;
 
-ORDER BY av.validated_at DESC
-LIMIT ? OFFSET ?
+// Add condition for observation_cadre based on true/false
+if (observation_cadre === true) {
+  query += ` AND av.observation_cadre IS NOT NULL AND av.observation_cadre != ''`;
+}
 
-  `;
+// Append ORDER BY, LIMIT, and OFFSET
+query += ` ORDER BY av.validated_at DESC LIMIT ? OFFSET ?`;
+
 
   mq.query(query, [decisionType, dr, limit, offset], (err, results) => {
     if (err) return callback(err, null);
@@ -57,9 +59,16 @@ LIMIT ? OFFSET ?
 }
 
 
+
+
+
+
+
 function getValidationsPv( dr, callback) {
   const query = `
-SELECT 
+
+
+  SELECT 
   s.nom,
   s.prenom,
   s.date_nais,
@@ -71,17 +80,23 @@ SELECT
   av.agent_id,
   av.validated_at,
   av.motif,
-  av.decision
+  av.decision,
+
+  av.membre_id,
+  m.name AS membre_name,
+  av.motif_membre,
+  av.decision_membre
 
 FROM agent_validations av
 JOIN souscripteurs s ON av.souscripteur_id = s.code
 JOIN users u ON av.agent_id = u.id
+LEFT JOIN users m ON av.membre_id = m.id
 
 WHERE 
-   u.dr = ?
-  AND av.membre_id IS NULL
+  u.dr = ?
 
 ORDER BY av.validated_at DESC
+
 
 
   `;
@@ -148,11 +163,35 @@ function insertToComplete(souscripteurId, dossier, callback) {
 }
 
 
+
+
+
+function getValidationsBySous(id, callback) {
+  let query = `
+    SELECT 
+      av.decision,
+      av.motif,
+      av.observation_cadre
+    FROM agent_validations av
+    WHERE av.souscripteur_id = ?
+  `;
+
+  mq.query(query, [id], (err, results) => {
+    if (err) {
+      return callback(err, null);
+    }
+    return callback(null, results[0]);
+  });
+}
+
+
+
 module.exports = {
  updateValidationDecision,
  insertValidationDecision,
  getValidationsPaginated,
  insertToComplete,
- getValidationsPv
+ getValidationsPv,
+ getValidationsBySous
  
   };
