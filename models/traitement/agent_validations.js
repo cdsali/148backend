@@ -107,6 +107,7 @@ ORDER BY av.validated_at DESC
   });
 }
 
+/*
 
 function updateValidationDecision(validations, callback) {
   if (!Array.isArray(validations) || validations.length === 0) {
@@ -148,6 +149,52 @@ function updateValidationDecision(validations, callback) {
   });
 }
 
+*/
+
+function updateValidationDecision(validations, callback) {
+  if (!Array.isArray(validations) || validations.length === 0) {
+    return callback(null, { message: 'No data to update.' });
+  }
+
+  const cases = {
+    decision_membre: [],
+    motif_membre: [],
+    membre_id: [],
+    validated_membre_at: [],
+    observation_membre: [],
+  };
+  const ids = [];
+
+  validations.forEach(({ souscripteurId, membreId, decision, motif, observation }) => {
+    // Escape the souscripteurId for safe SQL usage
+    const escapedSouscripteurId = mq.escape(souscripteurId);
+
+    // Push the escaped souscripteurId and build the CASE expressions
+    ids.push(escapedSouscripteurId);
+    cases.decision_membre.push(`WHEN ${escapedSouscripteurId} THEN ${mq.escape(decision)}`);
+    cases.motif_membre.push(`WHEN ${escapedSouscripteurId} THEN ${mq.escape(motif)}`);
+    cases.membre_id.push(`WHEN ${escapedSouscripteurId} THEN ${mq.escape(membreId)}`);
+    cases.validated_membre_at.push(`WHEN ${escapedSouscripteurId} THEN CURRENT_TIMESTAMP`);
+    cases.observation_membre.push(`WHEN ${escapedSouscripteurId} THEN ${mq.escape(observation || '')}`);
+  });
+
+  const query = `
+    UPDATE agent_validations
+    SET
+      decision_membre = CASE souscripteur_id ${cases.decision_membre.join(' ')} END,
+      motif_membre = CASE souscripteur_id ${cases.motif_membre.join(' ')} END,
+      membre_id = CASE souscripteur_id ${cases.membre_id.join(' ')} END,
+      validated_membre_at = CASE souscripteur_id ${cases.validated_membre_at.join(' ')} END,
+      observation_membre = CASE souscripteur_id ${cases.observation_membre.join(' ')} END
+    WHERE souscripteur_id IN (${ids.join(',')})
+  `;
+
+  // Execute the query
+  mq.query(query, (err, result) => {
+    if (err) return callback(err, null);
+    return callback(null, result);
+  });
+}
 
 
 function insertToComplete(souscripteurId, dossier, callback) {

@@ -14,7 +14,7 @@ const regionsData = require('../../config/regions');
 
 router.get('/getsousbyid/:sousId', verifyToken, (req, res) => {
   const userRole = req.user.userRole; 
-  const sousId = parseInt(req.params.sousId); 
+  const sousId = req.params.sousId; 
  console.log(sousId);
  
 

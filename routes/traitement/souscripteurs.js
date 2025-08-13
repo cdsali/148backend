@@ -31,7 +31,7 @@ const cache = new LRUCache({
 
 router.get('/getsousbyid/:sousId', verifyToken, async (req, res) => {
   const userId = req.user.userId;
-  const sousId = parseInt(req.params.sousId);
+  const sousId = req.params.sousId;
 const userRole=req.user.userRole;
   if (!sousId || !userId) {
     return res.status(400).json({ error: 'Invalid ID' });
@@ -82,70 +82,30 @@ const userRole=req.user.userRole;
 
 //const BASE_UPLOAD_DIR = path.join(__dirname, 'uploads'); 
 
-const BASE_UPLOAD_DIR = 'C:\\uploads';
-/*
-router.get('/test-doc/:url', (req, res) => {
-  
-  try {
-    console.log("url is ");
-    const decodedRelativePath = decodeURIComponent(req.params.url);
+//const BASE_UPLOAD_DIR = 'C:\\uploads';
 
-    // ✅ Prevent path traversal attacks
-    const resolvedPath = path.resolve(BASE_UPLOAD_DIR, decodedRelativePath);
-    if (!resolvedPath.startsWith(BASE_UPLOAD_DIR)) {
-      console.warn('Blocked unauthorized access attempt:', resolvedPath);
-      return res.status(400).json({ error: 'Invalid path' });
-    }
 
-    // ✅ Check file existence using stat (also gives us metadata)
-    fs.stat(resolvedPath, (err, stats) => {
-      if (err || !stats.isFile()) {
-        console.error('File not found or inaccessible:', resolvedPath);
-        return res.status(404).json({ error: 'File not found' });
-      }
 
-      // ✅ Set response headers
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${path.basename(resolvedPath)}"`);
-      res.setHeader('Cache-Control', 'public, max-age=3600');
 
-      // ✅ Stream file (non-blocking, concurrent-friendly)
-      const readStream = fs.createReadStream(resolvedPath);
-
-      readStream.on('error', (streamErr) => {
-        console.error('Stream error:', streamErr);
-        if (!res.headersSent) {
-          res.sendStatus(500);
-        }
-      });
-
-      readStream.pipe(res);
-    });
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});*/
-
+// Create a Readable stream from Buffer
 function readableFromBuffer(buffer) {
   const stream = new Readable();
-  stream._read = () => {}; // no-op
+  stream._read = () => {};
   stream.push(buffer);
   stream.push(null);
   return stream;
 }
 
-// Utility: safe resolve within base dir
+// Prevent directory traversal
 function safeResolve(baseDir, relativePath) {
-  const decoded = relativePath;
-  const resolved = path.resolve(baseDir, decoded);
+  const resolved = path.resolve(baseDir, relativePath);
   if (!resolved.startsWith(baseDir)) {
     throw new Error('Invalid path');
   }
   return resolved;
 }
 
-// Merge PDF files given an array of full file paths -> returns Buffer
+
 async function mergePdfsToBuffer(files) {
   const mergedPdf = await PDFDocument.create();
   for (const filePath of files) {
@@ -158,28 +118,39 @@ async function mergePdfsToBuffer(files) {
   return Buffer.from(mergedBytes);
 }
 
+const MAX_FILES_TO_MERGE=10;
 
 router.get('/test-doc/*', async (req, res) => {
   try {
+
+    let BASE_UPLOAD_DIR = 'E:\\uploads\\datastore\\nfs_web\\app\\';
+    const isRecour = req.query.isrecour;
+
+    
+    if (isRecour === '1') {
+      BASE_UPLOAD_DIR = 'E:\\datastore\\nfs_web\\app\\';
+    } 
+
+    console.log("is      ",BASE_UPLOAD_DIR+req.params[0]);
     const decodedRelative = decodeURIComponent(req.params[0] || '');
     const resolvedPath = safeResolve(BASE_UPLOAD_DIR, decodedRelative);
 
-    // ensure it points inside base dir
     const folder = path.dirname(resolvedPath);
     const baseFileName = path.basename(resolvedPath);
     const prefix = baseFileName.replace(/\.pdf$/i, '');
     const cacheKey = `${folder}/${prefix}`;
 
-    // Serve from LRU Buffer cache if available
+    // Serve from LRU cache if exists
     if (cache.has(cacheKey)) {
       const buffer = cache.get(cacheKey);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `inline; filename="${prefix}_merged.pdf"`);
       res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Content-Length', buffer.length);
       return readableFromBuffer(buffer).pipe(res);
     }
 
-    // read folder, find matching pdfs starting with prefix
+    
     let filesInFolder;
     try {
       filesInFolder = await fs.promises.readdir(folder);
@@ -188,52 +159,54 @@ router.get('/test-doc/*', async (req, res) => {
       return res.status(404).json({ error: 'Folder not found' });
     }
 
-    const matching = [];
-    for (const name of filesInFolder) {
-      if (!name.toLowerCase().endsWith('.pdf')) continue;
-      if (!name.startsWith(prefix)) continue;
-      const fp = path.join(folder, name);
-      try {
-        const st = await fs.promises.stat(fp);
-        if (st.isFile()) matching.push({ fullPath: fp, mtime: st.mtime });
-      } catch (e) {
-        // ignore broken files
-      }
-    }
+    
+    const candidates = filesInFolder.filter(name =>
+      name.toLowerCase().endsWith('.pdf') && name.startsWith(prefix)
+    );
+
+    const matching = (await Promise.all(
+      candidates.map(async name => {
+        const fp = path.join(folder, name);
+        try {
+          const st = await fs.promises.stat(fp);
+          if (st.isFile()) return { fullPath: fp, mtime: st.mtime };
+        } catch {}
+        return null;
+      })
+    )).filter(Boolean);
 
     if (matching.length === 0) {
       return res.status(404).json({ error: 'No matching PDF found.' });
     }
 
-    // sort newest first (optional)
+    // Sort newest to oldest
     matching.sort((a, b) => b.mtime - a.mtime);
 
-    // merge into buffer
-    const filePaths = matching.map(m => m.fullPath);
-    const mergedBuffer = await mergePdfsToBuffer(filePaths);
+    // Limit number of files merged
+    const filePaths = matching.slice(0, MAX_FILES_TO_MERGE).map(m => m.fullPath);
 
-    // cache the Buffer (LRU)
+    // Merge and cache
+    const mergedBuffer = await mergePdfsToBuffer(filePaths);
     cache.set(cacheKey, mergedBuffer);
 
-    // optional: persist merged to disk for faster subsequent reads (commented)
-    // const outPath = path.join(folder, `${prefix}_merged.pdf`);
-    // await fs.promises.writeFile(outPath, mergedBuffer);
-
+    // Stream response
+    const safeName = prefix.replace(/[^a-z0-9_\-]/gi, '_');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${prefix}_merged.pdf"`);
+    res.setHeader('Content-Disposition', `inline; filename="${safeName}_merged.pdf"`);
     res.setHeader('Cache-Control', 'public, max-age=3600');
-
+    res.setHeader('Content-Length', mergedBuffer.length);
     return readableFromBuffer(mergedBuffer).pipe(res);
 
   } catch (err) {
     console.error('PDF merge error:', err);
     if (!res.headersSent) {
       const isInvalidPath = err.message === 'Invalid path';
-      return res.status(isInvalidPath ? 400 : 500).json({ error: isInvalidPath ? 'Invalid path' : 'Server error' });
+      return res.status(isInvalidPath ? 400 : 500).json({
+        error: isInvalidPath ? 'Invalid path' : 'Server error'
+      });
     }
   }
 });
-
 
 
 
@@ -437,7 +410,7 @@ router.post('/validations/bulk', verifyToken, async (req, res) => {
 
   // Prepare data for update
   const formatted = decisions.map(({ souscripteurId, decision, motif,observation }) => ({
-    souscripteurId,
+    souscripteurId: String(souscripteurId),
     membreId,
     decision,
     motif: motif || null,
@@ -488,7 +461,7 @@ router.get('/validations/sous', verifyToken, async (req, res) => {
     }
 
     // Vérification que le souscripteur_id est bien un entier
-    if (!souscripteur_id || isNaN(souscripteur_id)) {
+    if (!souscripteur_id ) {
       return res.status(400).json({ success: false, message: 'souscripteur_id requis et doit être un entier' });
     }
 
