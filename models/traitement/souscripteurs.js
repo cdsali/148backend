@@ -73,6 +73,43 @@ async function getSouscripteurStats() {
   };
 }
 
+
+async function getSouscripteurStatsDr(id) {
+  const [rows] = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM souscripteurs) AS total,
+      (SELECT COUNT(*) FROM souscripteurs WHERE assign = 1) AS assigned,
+      (SELECT COUNT(*)
+         FROM agent_validations av
+         JOIN users u ON av.agent_id = u.id
+         WHERE av.decision = 'valide' AND u.id = ?) AS favorable,
+      (SELECT COUNT(*)
+         FROM agent_validations av
+         JOIN users u ON av.agent_id = u.id
+         WHERE av.decision = 'rejete' AND u.id = ?) AS defavorable,
+      (SELECT COUNT(*)
+         FROM agent_validations av
+         JOIN users u ON av.agent_id = u.id
+         WHERE av.decision = 'complete' AND u.id = ?) AS complete
+  `, [id, id, id]);
+
+  const { total, assigned, favorable, defavorable } = rows[0];
+  const traites = favorable + defavorable;
+  const restants = total - traites;
+
+  return {
+    total,
+    assigned,
+    favorable,
+    defavorable,
+    traites,
+    restants,
+  };
+}
+
+
+
+
 async function getTraitesParJourDerniers10Jours() {
   const query = `
     SELECT 
@@ -97,12 +134,42 @@ ORDER BY jour ASC;
   }
 }
 
+
+async function getTraitesParJourDerniers10JoursDr(id) {
+  const query = `
+    SELECT 
+      DATE(av.validated_at) AS jour,
+      COUNT(*) AS total_traites,
+      SUM(av.decision = 'valide') AS favorable,
+      SUM(av.decision = 'rejete') AS defavorable,
+      SUM(av.decision = 'complete') AS complete
+    FROM agent_validations av
+    JOIN users u ON av.agent_id = u.id
+    WHERE 
+      DATE(av.validated_at) >= CURDATE() - INTERVAL 9 DAY
+      AND u.dr = ?
+    GROUP BY jour
+    ORDER BY jour ASC;
+  `;
+
+  try {
+    const [rows] = await db.query(query, [id]);
+    return rows;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des dossiers traités par jour:', error);
+    throw error;
+  }
+}
+
+
 module.exports = {
  
   GetSousById,
   InsertAddress,
   GetAddressesBySouscripteurId,
   getSouscripteurStats,
-  getTraitesParJourDerniers10Jours
+  getTraitesParJourDerniers10Jours,
+  getSouscripteurStatsDr,
+  getTraitesParJourDerniers10JoursDr
 
   };

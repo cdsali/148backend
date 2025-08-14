@@ -316,9 +316,39 @@ router.get('/stats', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/stats/:id', verifyToken, async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'Invalid ID' });
+    }
+
+    const stats = await sousModel.getSouscripteurStatsDr(id);
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('getSouscripteurStats error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+
+
+
+
 router.get('/stats/traite-par-jour', async (req, res) => {
   try {
     const data = await sousModel.getTraitesParJourDerniers10Jours();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+router.get('/stats/traite-par-jour/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const data = await sousModel.getTraitesParJourDerniers10JoursDr(id);
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
