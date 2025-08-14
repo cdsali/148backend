@@ -186,6 +186,16 @@ function DeleteUncompletedAssignments(agentId) {
 
 
 
+function UpdatePassword(userId, newPassword, callback) {
+  const query = 'UPDATE users SET password = SHA2(?, 256) WHERE id = ?';
+  mq.query(query, [newPassword, userId], function (err, result) {
+    if (err) return callback(err, null);
+    callback(null, result.affectedRows > 0); // Return true if password was updated
+  });
+}
+
+
+
 
 // ✅ Export all functions
 module.exports = {
@@ -201,5 +211,6 @@ module.exports = {
   InsertUser,
   UpdateAffectationRecours,
 
-  DeleteUncompletedAssignments,getSessionsByDr
+  DeleteUncompletedAssignments,getSessionsByDr,
+  UpdatePassword
 };
