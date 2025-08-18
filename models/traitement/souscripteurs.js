@@ -78,23 +78,25 @@ async function getSouscripteurStatsDr(id) {
   const [rows] = await db.query(`
     SELECT
       (SELECT COUNT(*) FROM souscripteurs) AS total,
-      (SELECT COUNT(*) FROM souscripteurs WHERE assign = 1) AS assigned,
+       (SELECT COUNT(*) FROM agent_assignments ass
+         JOIN users u ON ass.agent_id = u.id
+         WHERE  u.dr = ?) AS assigned,
       (SELECT COUNT(*)
          FROM agent_validations av
          JOIN users u ON av.agent_id = u.id
-         WHERE av.decision = 'valide' AND u.id = ?) AS favorable,
+         WHERE av.decision = 'valide' AND u.dr = ?) AS favorable,
       (SELECT COUNT(*)
          FROM agent_validations av
          JOIN users u ON av.agent_id = u.id
-         WHERE av.decision = 'rejete' AND u.id = ?) AS defavorable,
+         WHERE av.decision = 'rejete' AND u.dr = ?) AS defavorable,
       (SELECT COUNT(*)
          FROM agent_validations av
          JOIN users u ON av.agent_id = u.id
-         WHERE av.decision = 'complete' AND u.id = ?) AS complete
-  `, [id, id, id]);
+         WHERE av.decision = 'complete' AND u.dr = ?) AS complete
+  `, [id,id, id, id]);
 
-  const { total, assigned, favorable, defavorable } = rows[0];
-  const traites = favorable + defavorable;
+  const { total, assigned, favorable, defavorable,complete } = rows[0];
+  const traites = favorable + defavorable+complete;
   const restants = total - traites;
 
   return {
@@ -104,6 +106,7 @@ async function getSouscripteurStatsDr(id) {
     defavorable,
     traites,
     restants,
+    complete
   };
 }
 

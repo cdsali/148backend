@@ -46,6 +46,8 @@ async function CreateSession(userId, token = null, ip = null) {
 }
 
 // ✅ Get currently online users (with last login and status)
+
+/*
 function getSessions(callback) {
   const query = `
     SELECT 
@@ -58,17 +60,69 @@ function getSessions(callback) {
     if (err) return callback(err, null);
     callback(null, rows);
   });
+}*/
+
+function getSessions(callback) {
+  const query = `
+    SELECT 
+    u.id, 
+    u.name, 
+    u.affectation, 
+    u.affectation_recours, 
+    u.role, 
+    u.dr, 
+    u.last_login, 
+    u.last_logout, 
+    IF(u.is_online = 1, 'online', 'offline') AS status,
+    COUNT(av.agent_id) AS count_traite
+FROM 
+    users u
+LEFT JOIN 
+    agent_validations av ON u.id = av.agent_id 
+GROUP BY 
+    u.id
+ORDER BY 
+    u.last_login DESC
+  `;
+  mq.query(query, (err, rows) => {
+    if (err) return callback(err, null);
+    callback(null, rows);
+  });
+
+
 }
+
+
+
+
+
+
 
 
 function getSessionsByDr(dr, callback) {
   const query = `
-    SELECT 
-      id, name, affectation, affectation_recours, role, dr, last_login, last_logout, 
-      IF(is_online = 1, 'online', 'offline') AS status 
-    FROM users 
-    WHERE dr = ?
-    ORDER BY last_login DESC
+   SELECT 
+    u.id, 
+    u.name, 
+    u.affectation, 
+    u.affectation_recours, 
+    u.role, 
+    u.dr, 
+    u.last_login, 
+    u.last_logout, 
+    IF(u.is_online = 1, 'online', 'offline') AS status,
+    COUNT(av.agent_id) AS count_traite
+FROM 
+    users u
+LEFT JOIN 
+    agent_validations av ON u.id = av.agent_id 
+WHERE 
+    u.dr = ? 
+GROUP BY 
+    u.id
+ORDER BY 
+    u.last_login DESC
+
   `;
 
   // Ajout du paramètre `dr` ici

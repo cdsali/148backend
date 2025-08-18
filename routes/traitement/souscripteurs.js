@@ -316,10 +316,10 @@ router.get('/stats', verifyToken, async (req, res) => {
   }
 });
 
-router.get('/stats/:id', verifyToken, async (req, res) => {
+router.get('/statsDr/:id', verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
-
+   
     if (!id) {
       return res.status(400).json({ success: false, error: 'Invalid ID' });
     }
@@ -336,8 +336,9 @@ router.get('/stats/:id', verifyToken, async (req, res) => {
 
 
 
-router.get('/stats/traite-par-jour', async (req, res) => {
+router.get('/stats/traite-par-jour10', async (req, res) => {
   try {
+    console.log('hell');
     const data = await sousModel.getTraitesParJourDerniers10Jours();
     res.json({ success: true, data });
   } catch (err) {
