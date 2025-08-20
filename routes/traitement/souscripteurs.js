@@ -514,6 +514,26 @@ router.get('/validations/sous', verifyToken, async (req, res) => {
 
 
 
+router.put('/update-enfants', verifyToken, async (req, res) => {
+  const { code, nbr_enfant } = req.body;
+
+  if (!code || nbr_enfant === undefined) {
+    return res.status(400).json({ success: false, message: 'Champs requis manquants (code, nbr_enfant)' });
+  }
+
+  try {
+    const updated = await sousModel.updateNbrEnfantsByCode(code, nbr_enfant);
+    if (updated) {
+      res.json({ success: true, message: 'Nombre d\'enfants mis à jour avec succès' });
+    } else {
+      res.status(404).json({ success: false, message: 'Souscripteur non trouvé avec ce code' });
+    }
+  } catch (err) {
+    console.error('Erreur updateNbrEnfantsByCode:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la mise à jour' });
+  }
+});
+
 
 
 module.exports = router;

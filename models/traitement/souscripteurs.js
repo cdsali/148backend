@@ -165,6 +165,19 @@ async function getTraitesParJourDerniers10JoursDr(id) {
 }
 
 
+
+async function updateNbrEnfantsByCode(code, nbr_enfant) {
+  const query = `
+    UPDATE souscripteurs 
+    SET nbr_enfant = ? 
+    WHERE code = ?
+  `;
+
+  const [result] = await db.query(query, [nbr_enfant, code]);
+  return result.affectedRows > 0;
+}
+
+
 module.exports = {
  
   GetSousById,
@@ -173,6 +186,7 @@ module.exports = {
   getSouscripteurStats,
   getTraitesParJourDerniers10Jours,
   getSouscripteurStatsDr,
-  getTraitesParJourDerniers10JoursDr
+  getTraitesParJourDerniers10JoursDr,
+  updateNbrEnfantsByCode
 
   };
