@@ -404,7 +404,7 @@ router.get('/validations', verifyToken, async (req, res) => {
 
     const decision = req.query.decision || '';
     const dr = req.user?.userDr;
-    const limit = parseInt(req.query.limit || '10', 10);
+    const limit = parseInt(req.query.limit || '20', 10);
     const offset = parseInt(req.query.offset || '0', 10);
     const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
 
