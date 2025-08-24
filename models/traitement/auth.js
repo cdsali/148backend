@@ -61,7 +61,7 @@ function getSessions(callback) {
     callback(null, rows);
   });
 }*/
-
+/*
 function getSessions(callback) {
   const query = `
     SELECT 
@@ -90,6 +90,41 @@ ORDER BY
   });
 
 
+}*/
+
+
+function getSessions(date = null, callback) {
+  const queryParams = [];
+
+  const query = `
+     SELECT 
+    u.id, 
+    u.name, 
+    u.affectation, 
+    u.affectation_recours, 
+    u.role, 
+    u.dr, 
+    u.last_login, 
+    u.last_logout, 
+    IF(u.is_online = 1, 'online', 'offline') AS status,
+    COUNT(av.agent_id) AS count_traite
+FROM 
+    users u
+LEFT JOIN 
+    agent_validations av ON u.id = av.agent_id 
+      ${date ? "AND DATE(av.validated_at) = ?" : ""}
+    GROUP BY
+      u.id
+    ORDER BY
+      u.last_login DESC
+  `;
+
+  if (date) queryParams.push(date);
+
+  mq.query(query, queryParams, (err, rows) => {
+    if (err) return callback(err, null);
+    callback(null, rows);
+  });
 }
 
 
@@ -98,8 +133,9 @@ ORDER BY
 
 
 
+function getSessionsByDr(dr,date = null, callback) {
 
-function getSessionsByDr(dr, callback) {
+  const queryParams = [];
   const query = `
    SELECT 
     u.id, 
@@ -116,6 +152,7 @@ FROM
     users u
 LEFT JOIN 
     agent_validations av ON u.id = av.agent_id 
+      ${date ? "AND DATE(av.validated_at) = ?" : ""}
 WHERE 
     u.dr = ? 
 GROUP BY 
@@ -125,8 +162,11 @@ ORDER BY
 
   `;
 
-  // Ajout du paramètre `dr` ici
-  mq.query(query, [dr], (err, rows) => {
+  if (date) queryParams.push(date);
+
+  queryParams.push(dr);
+
+  mq.query(query, queryParams, (err, rows) => {
     if (err) return callback(err, null);
     callback(null, rows);
   });

@@ -104,8 +104,31 @@ router.post('/logout', verifyToken, async function (req, res) {
 });
 
 // ✅ Get online users or sessions
+
+/*
 router.get('/session', verifyToken, function (req, res) {
   fn.getSessions(function (err, sessions) {
+    if (err) {
+      console.error('Erreur lors de la récupération des sessions:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des sessions',
+        error: err.message || err
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Sessions récupérées avec succès',
+      data: sessions
+    });
+  });
+});*/
+
+router.get('/session', verifyToken, function (req, res) {
+  const date = req.query.date || null;
+
+  fn.getSessions(date, function (err, sessions) {
     if (err) {
       console.error('Erreur lors de la récupération des sessions:', err);
       return res.status(500).json({
@@ -125,8 +148,10 @@ router.get('/session', verifyToken, function (req, res) {
 
 
 router.get('/sessionDr', verifyToken, function (req, res) {
+
+  const date = req.query.date || null;
   const dr = parseInt(req.user.userDr);
-  fn.getSessionsByDr(dr,function (err, sessions) {
+  fn.getSessionsByDr(dr,date,function (err, sessions) {
     if (err) {
       console.error('Erreur lors de la récupération des sessions:', err);
       return res.status(500).json({

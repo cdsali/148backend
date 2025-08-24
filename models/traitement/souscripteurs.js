@@ -47,6 +47,7 @@ async function GetAddressesBySouscripteurId(souscripteur_id) {
 
       
 
+
         
 async function getSouscripteurStats() {
   const [rows] = await db.query(`
@@ -55,10 +56,65 @@ async function getSouscripteurStats() {
       (SELECT COUNT(*) FROM agent_assignments) AS assigned,
       (SELECT COUNT(*) FROM agent_validations WHERE decision = 'valide') AS favorable,
       (SELECT COUNT(*) FROM agent_validations WHERE decision = 'rejete') AS defavorable,
-        (SELECT COUNT(*) FROM agent_validations WHERE decision = 'complete') AS complete
+        (SELECT COUNT(*) FROM agent_validations WHERE decision = 'complete') AS complete,
+
+
+  
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'valide' AND u.affectation_recours = 'traitement') AS valide_traitement,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'valide' AND u.affectation_recours = 'mhuv') AS valide_mhuv,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'valide' AND u.affectation_recours = 'dgdn') AS valide_dgdn,
+
+  
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'rejete' AND u.affectation_recours = 'traitement') AS rejete_traitement,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'rejete' AND u.affectation_recours = 'mhuv') AS rejete_mhuv,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'rejete' AND u.affectation_recours = 'dgdn') AS rejete_dgdn,
+
+ 
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'complete' AND u.affectation_recours = 'traitement') AS complete_traitement,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'complete' AND u.affectation_recours = 'mhuv') AS complete_mhuv,
+  (SELECT COUNT(*)
+   FROM agent_validations av
+   JOIN users u ON av.agent_id = u.id
+   WHERE av.decision = 'complete' AND u.affectation_recours = 'dgdn') AS complete_dgdn
+
+
+
+
   `);
 
-  const { total, assigned, favorable, defavorable,complete } = rows[0];
+  const { total, assigned, favorable, defavorable,complete, valide_traitement,
+    valide_mhuv,
+    valide_dgdn,
+    rejete_traitement,
+    rejete_mhuv,
+    rejete_dgdn,
+    complete_traitement,
+    complete_dgdn,
+    complete_mhuv } = rows[0];
   const traites = favorable + defavorable+complete;
   const restants = total - traites;
 
@@ -69,7 +125,17 @@ async function getSouscripteurStats() {
     defavorable,
     traites,
     restants,
-    complete
+    complete,
+    valide_traitement,
+    valide_mhuv,
+    valide_dgdn,
+    rejete_traitement,
+    rejete_mhuv,
+    rejete_dgdn,
+    complete_traitement,
+    complete_dgdn,
+    complete_mhuv
+    
   };
 }
 
