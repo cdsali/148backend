@@ -19,7 +19,7 @@ function insertValidationDecision(souscripteurId, agentId, decision, motif,obser
   });
 }
 
-
+/*
 
 function getValidationsPaginated(decisionType, dr,observation_cadre, limit, offset, callback) {
  
@@ -60,7 +60,51 @@ query += ` ORDER BY av.validated_at DESC LIMIT ? OFFSET ?`;
 
 
 
+*/
 
+
+function getValidationsPaginated(decisionType, dr, observation_cadre, limit, offset, userId, callback) {
+  let query = `
+    SELECT
+      s.nom,
+      s.prenom,
+      s.date_nais,
+      s.code AS id_souscripteur,
+      u.name AS agent_name,
+      u.affectation,
+      av.agent_id,
+      av.validated_at,
+      av.motif,
+      av.decision
+    FROM agent_validations av
+    JOIN souscripteurs s ON av.souscripteur_id = s.code
+    JOIN users u ON av.agent_id = u.id
+    WHERE av.decision = ?
+      AND u.dr = ?
+      AND av.membre_id IS NULL
+  `;
+
+  const queryParams = [decisionType, dr];
+
+  // Add condition for observation_cadre if true
+  if (observation_cadre) {
+    query += ` AND av.observation_cadre IS NOT NULL AND av.observation_cadre != ''`;
+  }
+
+  // Optional agent filter
+  if (userId) {
+    query += ` AND av.agent_id = ?`;
+    queryParams.push(userId);
+  }
+
+  query += ` ORDER BY av.validated_at DESC LIMIT ? OFFSET ?`;
+  queryParams.push(limit, offset);
+
+  mq.query(query, queryParams, (err, results) => {
+    if (err) return callback(err, null);
+    return callback(null, results);
+  });
+}
 
 
 

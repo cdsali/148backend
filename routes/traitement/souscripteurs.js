@@ -357,7 +357,7 @@ router.get('/stats/traite-par-jour/:id', async (req, res) => {
 });
 
 
-
+/*
 router.get('/validations', verifyToken, async (req, res) => {
 
   try {
@@ -392,6 +392,41 @@ router.get('/validations', verifyToken, async (req, res) => {
   }
 });
 
+*/
+
+router.get('/validations', verifyToken, async (req, res) => {
+  try {
+    console.log(req.query);
+
+    if (req.user?.userRole !== 'membre') {
+      return res.status(403).json({ success: false, message: 'Accès refusé' });
+    }
+
+    const decision = req.query.decision || '';
+    const dr = req.user?.userDr;
+    const limit = parseInt(req.query.limit || '10', 10);
+    const offset = parseInt(req.query.offset || '0', 10);
+    const userId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+
+    let observation_cadre = req.query.observation_cadre === 'true';
+
+    if (!decision || isNaN(dr)) {
+      return res.status(400).json({ success: false, message: 'decision et dr requis' });
+    }
+
+    const data = await new Promise((resolve, reject) => {
+      validationmodel.getValidationsPaginated(decision, dr, observation_cadre, limit, offset, userId, (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('getValidationsPaginated error:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
 
 
 
